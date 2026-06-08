@@ -51,13 +51,12 @@ AI helped me design the tests by drafting the initial pytest cases, but I review
 
 ## 4. What did you learn about Streamlit and state?
 
-- How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
+I'd explain it like this: every time you interact with a Streamlit app — click a button, type in a box — Streamlit doesn't update just that one piece. It re-runs your *entire* Python script from the top, like reloading the page. That means any normal variable you create gets thrown away and recalculated on every interaction. So if you wrote `secret = random.randint(1, 100)` as a plain variable, you'd get a *new* secret on every click, which is exactly one of the bugs here. `st.session_state` is the fix: it's a little dictionary that *survives* between reruns, so values you store there (the secret, the score, the attempt count) persist instead of resetting. The mental model that made it click for me: the script runs top-to-bottom every time, and `session_state` is the only memory that carries over.
 
 ---
 
 ## 5. Looking ahead: your developer habits
 
-- What is one habit or strategy from this project that you want to reuse in future labs or projects?
-  - This could be a testing habit, a prompting strategy, or a way you used Git.
-- What is one thing you would do differently next time you work with AI on a coding task?
-- In one or two sentences, describe how this project changed the way you think about AI generated code.
+- **One habit I want to reuse:** writing a regression test the moment I fix a bug, named after the bug itself (e.g. `test_hint_direction_is_not_backwards`). It turns "I think I fixed it" into "the suite proves it's fixed and will catch it if it comes back," and it forced me to actually understand the bug well enough to assert on it.
+- **One thing I'd do differently with AI:** give it the constraints *up front* instead of after it guesses wrong. The AI initially proposed a return type that broke the existing tests because I hadn't told it the test contract first. Next time I'll attach the tests and say "your change must keep these green" before asking for the fix.
+- **How this changed how I think about AI-generated code:** I now treat AI output as a confident first draft from a teammate who hasn't read all the requirements — useful and fast, but something I have to verify against tests and the running app before I trust it. The AI is great at proposing; the judgment about whether a proposal is actually correct still has to be mine.

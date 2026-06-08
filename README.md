@@ -25,28 +25,41 @@ It wrote the code, ran away, and now the game is unplayable.
 
 ## 📝 Document Your Experience
 
-- [ ] Describe the game's purpose.
-- [ ] Detail which bugs you found.
-- [ ] Explain what fixes you applied.
+- [x] **Describe the game's purpose.** A Streamlit number-guessing game: pick a difficulty, guess the secret number within a limited number of attempts, and get "higher/lower" hints plus a score that rewards winning quickly.
+- [x] **Detail which bugs you found.**
+  - Hints lied on every other guess (secret was cast to a string on even attempts, breaking the comparison).
+  - Hint wording was backwards ("Too High" told you to go HIGHER).
+  - Scoring was incoherent — wrong guesses could *raise* the score, and it could go negative.
+  - Attempt counter was off by one and an invalid input still burned an attempt.
+  - "Hard" was easier than "Normal", and the range text was hard-coded to "1 and 100".
+  - All logic in `logic_utils.py` was stubbed (`NotImplementedError`), so `pytest` failed immediately.
+  - "New Game" didn't fully reset (old score/status/history leaked in).
+- [x] **Explain what fixes you applied.** Refactored the four core functions into `logic_utils.py` so they're pure and testable; always compare against the integer secret; corrected hint wording; made scoring a consistent, non-negative penalty with a sane win bonus; fixed the attempt counter and stopped counting invalid input; made Hard genuinely the widest range with dynamic UI text; and made "New Game" reset everything. Then added pytest coverage and verified in the live app.
 
 ## 📸 Demo Walkthrough
 
 Describe your fixed game in numbered steps so a reader can follow along without watching a video:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+1. User selects **Normal** difficulty (range 1–100, 6 attempts). The page shows "Attempts left: 6" before any guess.
+2. User enters a guess of `40` → game returns **"📈 Too low — go HIGHER!"** and the score updates.
+3. User enters a guess of `70` → game returns **"📉 Too high — go LOWER!"** (hint direction is stable, not flipping between turns).
+4. After each guess "Attempts left" decreases by exactly one, and the score reflects a small, consistent penalty (never dropping below 0).
+5. User enters the correct number (visible in the **Developer Debug Info** panel) → balloons appear, the game shows **"You won!"** with the secret and a final score that's higher the fewer attempts it took.
+6. User clicks **New Game 🔁** → secret, attempts, score, status, and history all reset to a clean slate.
 
 **Screenshot** *(optional)*: <!-- Insert a screenshot of your fixed, winning game here -->
 
 ## 🧪 Test Results
 
 ```
-# Paste your pytest output here, e.g.:
-# pytest tests/
-# ========================= X passed in 0.XXs =========================
+$ python -m pytest tests/
+============================= test session starts =============================
+platform win32 -- Python 3.10.7, pytest-9.0.2, pluggy-1.6.0
+collected 13 items
+
+tests\test_game_logic.py .............                                   [100%]
+
+============================= 13 passed in 0.07s ==============================
 ```
 
 ## 🚀 Stretch Features
