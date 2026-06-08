@@ -33,18 +33,19 @@ Document at least 3 bugs you found. Add rows as needed.
 
 ## 2. How did you use AI as a teammate?
 
-- Which AI tools did you use on this project (for example: ChatGPT, Gemini, Copilot)?
-- Give one example of an AI suggestion that was correct (including what the AI suggested and how you verified the result).
-- Give one example of an AI suggestion that was incorrect or misleading (including what the AI suggested and how you verified the result).
+I used an AI coding assistant (Claude in VS Code, agent mode) as a pair programmer. I drove the investigation — I read the code, decided which bugs to chase, and marked the "crime scenes" — and used the AI to explain confusing lines, propose fixes, and generate pytest cases that I then reviewed.
+
+**A correct, helpful suggestion.** When I asked why the hints flipped on every other guess, the AI traced it to [`app.py:158-161`](app.py#L158-L161), where the secret is cast to `str` on even attempts so `check_guess` ends up comparing an `int` to a `str` and silently falls into a `TypeError` branch doing lexicographic comparison. It suggested deleting that cast and always comparing against the integer secret. I verified this by adding `test_guess_too_high`/`test_guess_too_low` (which now pass) and by playing the game with the debug panel open — the hint direction is now stable across consecutive guesses.
+
+**A misleading suggestion I rejected/modified.** At first the assistant wanted `check_guess` to keep returning a `(outcome, message)` tuple "so the UI still has its emoji string." That sounded reasonable, but the provided tests assert `check_guess(50, 50) == "Win"` — a *string*, not a tuple — so following that advice would have left the starter tests failing. I rejected it and instead had `check_guess` return only the outcome string and split the emoji text into a separate `hint_message()` helper. I verified the choice by running `pytest`: all three original tests pass against the single-string contract. This was a good reminder that the AI doesn't automatically know the existing test contract — I had to hold it to that.
 
 ---
 
 ## 3. Debugging and testing your fixes
 
-- How did you decide whether a bug was really fixed?
-- Describe at least one test you ran (manual or using pytest)  
-  and what it showed you about your code.
-- Did AI help you design or understand any tests? How?
+I decided a bug was "really fixed" only when I had both a green automated test *and* the matching behavior in the live game — one without the other wasn't enough. For example, after fixing the scoring logic I added `test_score_never_goes_negative` and `test_wrong_guess_costs_a_consistent_penalty`; running `python -m pytest tests/ -v` showed all 13 tests passing, which told me `update_score` no longer rewards wrong guesses or drops below zero. I also re-ran the app with `streamlit run app.py` and watched the score and "Attempts left" counter behave sanely from the first guess.
+
+AI helped me design the tests by drafting the initial pytest cases, but I reviewed and tightened each one — I added a regression test (`test_hint_direction_is_not_backwards`) specifically aimed at the original "backwards hint" bug, and a `test_hard_is_wider_than_normal` to lock in the difficulty fix, so the same glitches can't silently come back.
 
 ---
 
